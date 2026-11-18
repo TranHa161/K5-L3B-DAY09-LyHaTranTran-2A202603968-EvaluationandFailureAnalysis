@@ -2,8 +2,8 @@
 
 Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10.
 
-- **Run ID / eval set SHA:** baseline `E-swarm-20261118-80d0` · PR `E-fixed-20261118-80d0`, `E-seeded_regression-20261118-80d0` · eval set `80d07968718f`
-- **Phiên bản:** code: nhánh `starter/d09` (commit chứa M3/M4, hash xem PR) · eval set v1 (sha `80d07968718f`) · metric_spec `1.0` · grader `lab9.graders.GRADERS` (6 grader, cùng commit) · seeds 11/22/33/44/55 · MockLLM · Python 3.14.7 khi chạy local, CI chạy 3.13 (MockLLM tất định, `ci_check` xác nhận metric baseline = metric CI)
+- **Run ID / eval set SHA:** baseline `E-swarm-20261118-5ed6` · PR `E-fixed-20261118-5ed6`, `E-seeded_regression-20261118-5ed6` · eval set `5ed6899cda99`
+- **Phiên bản:** code: nhánh `starter/d09` (commit chứa M3/M4, hash xem PR) · eval set v1 (sha `5ed6899cda99`) · metric_spec `1.0` · grader `lab9.graders.GRADERS` (6 grader, cùng commit) · seeds 11/22/33/44/55 · MockLLM · Python 3.14.7 khi chạy local, CI chạy 3.13 (MockLLM tất định, `ci_check` xác nhận metric baseline = metric CI)
 - **Eval set:** v1, 14 item × 5 seed = 70 trial, nguồn `lab8_public` (matrix T01–T14); nhãn ở `labels_v1.json`, tách khỏi item; mỗi item có `failure_modes` (FM-01…FM-09, xem `docs/failure_taxonomy.md`) và provenance.
 - **Metric & ngưỡng** (`src/config/metric_spec.yaml`):
 
