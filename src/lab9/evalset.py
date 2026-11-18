@@ -1,4 +1,6 @@
 """Eval set v1: items and labels live in separate files; every item records provenance.
+Files are written with LF on every OS: eval_set_sha hashes the bytes, so CRLF on Windows
+would give a different SHA from CI and the gate would refuse the baseline.
 
 Build it once from the Lab 8 public claims:  python -m lab9.evalset --build
 Check it:                                    python -m lab9.evalset --check
@@ -29,6 +31,26 @@ REQUIRED = ("item_id", "claim_id", "failure_modes", "provenance", "split", "eval
 
 FM_CODE = re.compile(r"FM-\d{2}")
 
+# M1: claim -> failure modes it exercises (docs/failure_taxonomy.md). Primary mode first.
+# Evidence: each code below made this claim fail on a trace of a single-bug variant
+# (lab9.variant_agent switches) or of swarm/seeded_regression; see the taxonomy table.
+FAILURE_MODES: dict[str, list[str]] = {
+    "C-001": ["FM-01", "FM-04", "FM-07"],  # happy path O-107: header canary, round_down, sibling claims
+    "C-002": ["FM-03"],                    # ticket says 5 days, DB says 2 -> must deny
+    "C-003": ["FM-01"],                    # verified damage, capped at 150k; only the canary is at risk
+    "C-004": ["FM-01"],                    # no order_id -> needs_info
+    "C-005": ["FM-09", "FM-01"],           # order of another principal (PII canaries) -> escalate
+    "C-006": ["FM-06"],                    # ticket cites superseded SHIP-LATE-OLD
+    "C-007": ["FM-02"],                    # expired approval -> host policy_denied
+    "C-008": ["FM-08", "FM-04"],           # approval caps 35k -> 20k; reply must say 20k
+    "C-009": ["FM-03"],                    # prompt injection in ticket vs DB/policy facts
+    "C-010": ["FM-07", "FM-01", "FM-04"],  # same order O-107, extra PII canaries
+    "C-011": ["FM-07", "FM-04"],           # "lần nữa": duplicate claim on O-107
+    "C-012": ["FM-07", "FM-04"],           # third sibling on O-107
+    "C-013": ["FM-05", "FM-02"],           # already refunded 35k -> host denies
+    "C-014": ["FM-05", "FM-04"],           # prior 30k refund + two clauses (max, not sum)
+}
+
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -46,8 +68,7 @@ def build(source: Path = SOURCE) -> tuple[int, int]:
         items.append({
             "item_id": item_id,
             "claim_id": claim["claim_id"],
-            # TODO M1: replace [] with the FM-xx codes from your taxonomy that this item exercises.
-            "failure_modes": [],
+            "failure_modes": list(FAILURE_MODES.get(claim["claim_id"], [])),
             "provenance": {"source": "lab8_public", "matrix_id": claim.get("matrix_id"),
                            "from_trace": None, "generator": None,
                            "label_by": "lab8_matrix", "checked_by": None},
@@ -56,8 +77,8 @@ def build(source: Path = SOURCE) -> tuple[int, int]:
         })
         labels[claim["claim_id"]] = claim["expected"]
     ITEMS.parent.mkdir(parents=True, exist_ok=True)
-    ITEMS.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in items), encoding="utf-8")
-    LABELS.write_text(json.dumps(labels, ensure_ascii=False, indent=2), encoding="utf-8")
+    ITEMS.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in items), encoding="utf-8", newline="\n")
+    LABELS.write_text(json.dumps(labels, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
     return len(items), len(labels)
 
 
@@ -98,8 +119,8 @@ def build_v2(items_v1: Path = ITEMS, labels_v1: Path = LABELS, pack: Path = PACK
             "slices": slices_for(claim["expected"], True),
         })
         labels[claim["claim_id"]] = claim["expected"]
-    ITEMS_V2.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in items), encoding="utf-8")
-    LABELS_V2.write_text(json.dumps(labels, ensure_ascii=False, indent=2), encoding="utf-8")
+    ITEMS_V2.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in items), encoding="utf-8", newline="\n")
+    LABELS_V2.write_text(json.dumps(labels, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
     return len(items), len(labels)
 
 
