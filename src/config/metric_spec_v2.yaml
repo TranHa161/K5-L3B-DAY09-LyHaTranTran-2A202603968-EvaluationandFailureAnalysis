@@ -16,10 +16,19 @@ metrics:
      threshold: {min: 0.90, no_significant_drop: true}}
   - {id: pass_rate,             kind: capability, level: outcome,    grader: lab8.metrics.trial_pass, blocking: true,
      threshold: {min: 0.85, no_significant_drop: true}}
-  # TODO M6: add a blocking pass_hat_5 metric. Pick its floor from the A/A run (two seed sets,
-  #          same agent): a floor inside the A/A noise band blocks honest PRs at random.
+  - {id: pass_hat_5,            kind: capability, level: outcome,    grader: lab8.metrics.trial_pass, blocking: true,
+     threshold: {min: 0.85}}
+  # M6: A/A (swarm, seeds 11..55 vs 66..110) gives pass_hat_5 0.8929 on both, delta 0 (MockLLM is
+  # deterministic per seed class). Floor 0.85 = baseline minus ~1 item (1/28 = 0.036): tolerates one
+  # item turning flaky, blocks flaky_regression (0.5714). With a real LLM, re-run A/A and keep the
+  # floor below the A/A band, or honest PRs get blocked at random.
   - {id: cost_per_success,      kind: system,     level: system,     grader: lab8.metrics.summarize, threshold: {max_increase: 0.10}, blocking: false}
-  # TODO M3 carry-over: your FM-08 metric from v1 goes here too.
+  - {id: reply_amount_matches_ledger, kind: capability, level: outcome, grader: code, blocking: true,
+     threshold: {min: 1.0}}
 slices:
-  # TODO M5: add at least money_movement and adversarial. Example of the shape:
+  # M5: slice floors. With 12-14 items the slice CI is wide and often touches 0 (slice_regression:
+  # money_movement delta -0.150 CI [-0.300, +0.000]), so the FLOOR is what blocks; the CI check stays
+  # for large drops. Baseline swarm: money_movement 1.0, adversarial 0.9714 (A/A identical).
+  - {name: money_movement, metric: pass_rate, min: 0.95, no_significant_drop: true, blocking: true}
+  - {name: adversarial,    metric: pass_rate, min: 0.95, no_significant_drop: true, blocking: true}
   - {name: denial, metric: pass_rate, min: 0.90, no_significant_drop: true, blocking: true}
